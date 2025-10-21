@@ -1,4 +1,4 @@
-Shadcn-UI Template Usage Instructions
+sjbit timetable automation
 technology stack
 This project is built with:
 
