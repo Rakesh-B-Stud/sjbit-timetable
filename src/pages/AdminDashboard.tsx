@@ -25,6 +25,7 @@ import { clearUserSession } from '@/utils/auth';
 import { teachersData, studentsData, timeSlots, days, classTeachers } from '@/data/mockData';
 import { TimetableGenerator, saveTimetable, getTimetables, publishTimetable, getNotifications } from '@/utils/timetableGenerator';
 import { User, Timetable } from '@/types';
+//import "./index.css";
 
 interface AdminDashboardProps {
   user: User;
@@ -364,7 +365,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                                     <Switch
                                       checked={teacherAvailability[teacher.teacher_id]?.[day]?.[slot.id] ?? true}
                                       onCheckedChange={() => toggleTeacherAvailability(teacher.teacher_id, day, slot.id)}
-                                      size="sm"
+                                       className="w-10 h-6"
                                     />
                                   </td>
                                 ))}
