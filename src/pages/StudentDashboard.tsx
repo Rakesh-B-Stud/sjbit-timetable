@@ -22,6 +22,7 @@ import { User as UserType, Timetable } from '@/types';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import logo from "../assets/sjbit-logo.png"; // adjust path if needed
+import { teacherData } from '@/data/teacherdata';
 
 
 interface StudentDashboardProps {
@@ -431,26 +432,42 @@ const handleDownloadPDF = async () => {
 
 
           <TabsContent value="teachers" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Faculty Information
-                </CardTitle>
-                <CardDescription>
-                  Details about your teachers and their subjects
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* TODO: Add teacher information here */}
-                <div className="text-center py-8 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Teacher information will be displayed here</p>
-                  <p className="text-sm">Contact details, office hours, and subject expertise</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-center text-2xl font-semibold text-blue-700">
+        Our Faculty
+      </CardTitle>
+      <CardDescription className="text-center">
+        Meet the professors and mentors guiding your learning journey
+      </CardDescription>
+    </CardHeader>
+
+    <CardContent>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {teacherData.map((teacher) => (
+          <Card
+            key={teacher.id}
+            className="flex flex-col items-center p-4 rounded-2xl shadow-md bg-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:bg-gradient-to-br hover:from-blue-50 hover:to-white"
+          >
+            <img
+              src={teacher.photo}
+              alt={teacher.name}
+              className="w-24 h-24 rounded-full object-cover mb-3 border-2 border-gray-200 transition-transform duration-300 hover:rotate-3 hover:scale-110"
+            />
+            <h3 className="font-semibold text-lg text-gray-800 hover:text-blue-700 transition-colors duration-300">
+              {teacher.name}
+            </h3>
+            <p className="text-sm text-gray-600 text-center mt-1 px-2">
+              {teacher.bio}
+            </p>
+          </Card>
+        ))}
+      </div>
+    </CardContent>
+  </Card>
+</TabsContent>
+
+
 
           <TabsContent value="notifications" className="space-y-6">
             <Card>

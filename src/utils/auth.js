@@ -62,7 +62,7 @@ export const authenticateUser = (email, password, userType) => {
   return { success: false, message: 'Invalid credentials' };
 };
 
-// Session management
+// ✅ Session management
 export const saveUserSession = (user) => {
   localStorage.setItem('currentUser', JSON.stringify(user));
 };
@@ -72,19 +72,17 @@ export const getUserSession = () => {
   return user ? JSON.parse(user) : null;
 };
 
+// ✅ Only clear the user session — NOT the timetables
 export const clearUserSession = () => {
-  // ✅ Only clear user session data — not timetables
-  localStorage.removeItem('user');
-  //localStorage.removeItem('session');
+  localStorage.removeItem('currentUser');
 };
 
-
-// Check if user is authenticated
+// ✅ Check if user is authenticated
 export const isAuthenticated = () => {
   return getUserSession() !== null;
 };
 
-// Get user role
+// ✅ Get user role
 export const getUserRole = () => {
   const user = getUserSession();
   return user ? user.role : null;

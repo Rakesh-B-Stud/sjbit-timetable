@@ -203,6 +203,7 @@ export const teachersData = [
     subject_credits: [4, 1],
     max_sessions_per_day: [4, 1],
     password: "Dr. Prasad A Y",
+    gender: "male",
     available: true
   },
   {
@@ -216,6 +217,7 @@ export const teachersData = [
     subject_credits: [4],
     max_sessions_per_day: [4],
     password: "Shubha T V",
+    gender: "female",
     available: true
   },
   {
@@ -229,7 +231,8 @@ export const teachersData = [
     subject_credits: [4, 1],
     max_sessions_per_day: [4, 1],
     password: "Dr. Bindiya M K",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T004",
@@ -242,7 +245,8 @@ export const teachersData = [
     subject_credits: [4],
     max_sessions_per_day: [4],
     password: "Rajani",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T005",
@@ -255,7 +259,8 @@ export const teachersData = [
     subject_credits: [4, 4, 1],
     max_sessions_per_day: [4, 4, 1],
     password: "Vinutha K",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T006",
@@ -268,7 +273,8 @@ export const teachersData = [
     subject_credits: [4, 4, 4],
     max_sessions_per_day: [4, 4, 4],
     password: "Kavya G",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T007",
@@ -281,7 +287,9 @@ export const teachersData = [
     subject_credits: [1],
     max_sessions_per_day: [4],
     password: "Paramesh",
-    available: true
+    gender: "male",
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T008",
@@ -294,7 +302,8 @@ export const teachersData = [
     subject_credits: [1, 1, 1],
     max_sessions_per_day: [3, 3, 3],
     password: "PE (Physical Education)",
-    available: true
+    available: true,
+    gender: "male"
   },
   {
     teacher_id: "T009",
@@ -307,7 +316,8 @@ export const teachersData = [
     subject_credits: [1, 1, 1],
     max_sessions_per_day: [3, 3, 3],
     password: "Chetana K N",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T010",
@@ -320,7 +330,8 @@ export const teachersData = [
     subject_credits: [1, 1, 1, 4],
     max_sessions_per_day: [3, 3, 3, 4],
     password: "Dr. Arun Kumar D R",
-    available: true
+    available: true,
+    gender: "male"
   },
   {
     teacher_id: "T011",
@@ -333,7 +344,8 @@ export const teachersData = [
     subject_credits: [1, 1, 1, 4, 4],
     max_sessions_per_day: [4, 4, 4, 4, 4],
     password: "Dr. Prakruthi M K",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T012",
@@ -346,7 +358,8 @@ export const teachersData = [
     subject_credits: [1, 4, 1],
     max_sessions_per_day: [1, 4, 1],
     password: "Jyothi P K",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T013",
@@ -359,7 +372,8 @@ export const teachersData = [
     subject_credits: [1],
     max_sessions_per_day: [1],
     password: "Vijayalaxmi Joshi",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T014",
@@ -372,7 +386,8 @@ export const teachersData = [
     subject_credits: [4, 4, 1],
     max_sessions_per_day: [4, 4, 1],
     password: "Dr. Shantha Kumar H C",
-    available: true
+    available: true,
+    gender: "male"
   },
   {
     teacher_id: "T015",
@@ -385,7 +400,8 @@ export const teachersData = [
     subject_credits: [4, 1, 1],
     max_sessions_per_day: [4, 1, 1],
     password: "Dr. Ajay B N",
-    available: true
+    available: true,
+    gender: "male"
   },
   {
     teacher_id: "T016",
@@ -398,7 +414,8 @@ export const teachersData = [
     subject_credits: [4],
     max_sessions_per_day: [4],
     password: "Dhananjaya M",
-    available: true
+    available: true,
+    gender: "male"
   },
   {
     teacher_id: "T017",
@@ -411,7 +428,8 @@ export const teachersData = [
     subject_credits: [1],
     max_sessions_per_day: [3],
     password: "Dr. Banu Prakash",
-    available: true
+    available: true,
+    gender: "male"
   },
   {
     teacher_id: "T018",
@@ -424,7 +442,8 @@ export const teachersData = [
     subject_credits: [1, 4, 1],
     max_sessions_per_day: [1, 4, 1],
     password: "Lochan Gowda M",
-    available: true
+    available: true,
+    gender: "male",
   },
   {
     teacher_id: "T019",
@@ -437,7 +456,8 @@ export const teachersData = [
     subject_credits: [1],
     max_sessions_per_day: [4],
     password: "Srinidhi K S",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T020",
@@ -450,7 +470,8 @@ export const teachersData = [
     subject_credits: [1],
     max_sessions_per_day: [3],
     password: "Triveni R",
-    available: true
+    available: true,
+    gender: "female"
   },
   {
     teacher_id: "T021",
@@ -463,7 +484,8 @@ export const teachersData = [
     subject_credits: [1, 1, 1],
     max_sessions_per_day: [3, 3, 3],
     password: "NCC",
-    available: true
+    available: true,
+    gender: "male"
   }
 ];
 
