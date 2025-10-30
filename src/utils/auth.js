@@ -73,8 +73,11 @@ export const getUserSession = () => {
 };
 
 export const clearUserSession = () => {
-  localStorage.removeItem('currentUser');
+  // ✅ Only clear user session data — not timetables
+  localStorage.removeItem('user');
+  //localStorage.removeItem('session');
 };
+
 
 // Check if user is authenticated
 export const isAuthenticated = () => {

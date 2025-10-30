@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+//const [isPublished, setIsPublished] = useState(false);
+
 import { 
   Upload, 
   Users, 
@@ -23,9 +25,13 @@ import {
 } from 'lucide-react';
 import { clearUserSession } from '@/utils/auth';
 import { teachersData, studentsData, timeSlots, days, classTeachers } from '@/data/mockData';
-import { TimetableGenerator, saveTimetable, getTimetables, publishTimetable, getNotifications } from '@/utils/timetableGenerator';
+import { TimetableGenerator, saveTimetable, getTimetables, publishTimetable, getNotifications, savePublishedTimetable } from '@/utils/timetableGenerator';
 import { User, Timetable } from '@/types';
 //import "./index.css";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import logo from "../assets/sjbit-logo.png"; // adjust path if needed
+
 
 interface AdminDashboardProps {
   user: User;
@@ -38,21 +44,31 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedClassTeacher, setSelectedClassTeacher] = useState('');
   const [generatedTimetable, setGeneratedTimetable] = useState<Timetable | null>(null);
-  const [uploadMessage, setUploadMessage] = useState('');
-  const [teacherAvailability, setTeacherAvailability] = useState(() => {
-    const saved = localStorage.getItem('teacherAvailability');
-    return saved ? JSON.parse(saved) : {};
-  });
+  //const [uploadMessage, setUploadMessage] = useState('');
+  //const [teacherAvailability, setTeacherAvailability] = useState(() => {
+  //const saved = localStorage.getItem('teacherAvailability');
+   // return saved ? JSON.parse(saved) : {};
+  //});
 
   const handleLogout = () => {
     clearUserSession();
     onLogout();
   };
+  
+
+  const [uploadMessage, setUploadMessage] = useState('');
+const [teacherAvailability, setTeacherAvailability] = useState(() => {
+  const saved = localStorage.getItem('teacherAvailability');
+  return saved ? JSON.parse(saved) : {};
+});
+const [showData, setShowData] = useState(false);
 
   const handleFileUpload = (type: 'students' | 'teachers') => {
-    setUploadMessage(`${type === 'students' ? 'Students' : 'Teachers'} data uploaded successfully! Data has been processed and stored.`);
-    setTimeout(() => setUploadMessage(''), 3000);
-  };
+  setUploadMessage(`${type === 'students' ? 'Students' : 'Teachers'} data uploaded successfully! Data has been processed and stored.`);
+  setShowData(true); // 👈 show tables after any successful upload
+  setTimeout(() => setUploadMessage(''), 3000);
+};
+
 
   const handleGenerateTimetable = () => {
     if (!selectedSemester || !selectedSection || !selectedClassTeacher) {
@@ -72,11 +88,86 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   };
 
   const handlePublishTimetable = () => {
-    if (generatedTimetable) {
-      publishTimetable(generatedTimetable.semester, generatedTimetable.section);
-      alert('Timetable published successfully! Notifications sent to students and teachers.');
-    }
-  };
+  if (generatedTimetable) {
+    publishTimetable(generatedTimetable.semester, generatedTimetable.section);
+
+    // ✅ Persist timetable for students
+    const allTimetables = getTimetables();
+    savePublishedTimetable(allTimetables);
+
+    alert('✅ Timetable published successfully! It will now appear for all students.');
+  }
+};
+const handleAdminDownloadPDF = async () => {
+  const element = document.getElementById("admin-timetable-section");
+  if (!element) return;
+
+  // Ensure full rendering before capture
+  window.scrollTo(0, 0);
+
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // 🧩 Capture timetable section as image
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    scrollX: 0,
+    scrollY: -window.scrollY, // ensures full capture
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+
+  // 🏫 HEADER SECTION
+  const logoWidth = 20;
+  const logoHeight = 20;
+  pdf.addImage(logo, "PNG", 15, 10, logoWidth, logoHeight);
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(14);
+  pdf.text("SJB Institute of Technology", pageWidth / 2, 18, {
+    align: "center",
+  });
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(11);
+  pdf.text("Department of Computer Science and Engineering", pageWidth / 2, 25, {
+    align: "center",
+  });
+
+  // 🎓 Semester / Section / Class Teacher Info
+  pdf.setFontSize(10);
+  const infoText = `Semester ${selectedSemester} - Section ${selectedSection} | Class Teacher: ${selectedClassTeacher || "N/A"}`;
+
+  pdf.text(infoText, pageWidth / 2, 32, { align: "center" });
+
+  // 🗓️ Timetable Image Placement
+  const startY = 40;
+  const maxContentHeight = pageHeight - startY - 20; // leave footer space
+  const scaleFactor = Math.min(
+    (pageWidth - 20) / canvas.width,
+    maxContentHeight / canvas.height
+  );
+
+  const finalWidth = canvas.width * scaleFactor;
+  const finalHeight = canvas.height * scaleFactor;
+  const xOffset = (pageWidth - finalWidth) / 2;
+
+  pdf.addImage(imgData, "PNG", xOffset, startY, finalWidth, finalHeight);
+
+  // 📝 FOOTER
+  pdf.setFontSize(9);
+  pdf.setTextColor(100);
+  pdf.text("Generated by SJBIT Admin Portal", pageWidth / 2, pageHeight - 10, {
+    align: "center",
+  });
+
+  // 💾 Save file
+  pdf.save(`Admin_Timetable_Sem${selectedSemester}_Sec${selectedSection}.pdf`);
+};
+
 
   const toggleTeacherAvailability = (teacherId: string, day: string, slotId: number) => {
     const updated = { ...teacherAvailability };
@@ -88,51 +179,130 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
     localStorage.setItem('teacherAvailability', JSON.stringify(updated));
   };
 
-  const renderTimetableGrid = (timetable: Timetable) => {
-    if (!timetable) return null;
-
+  const renderTimetableGrid = (timetable: Timetable | null) => {
+  if (!timetable) {
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-blue-50">
-              <th className="border border-gray-300 p-2 font-semibold">Time</th>
-              {days.map(day => (
-                <th key={day} className="border border-gray-300 p-2 font-semibold">{day}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {timeSlots.map(slot => (
-              <tr key={slot.id}>
-                <td className="border border-gray-300 p-2 bg-gray-50 font-medium">
-                  {slot.time}
+      <div className="text-center py-8 text-gray-500">
+        <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <p>No timetable published yet</p>
+        <p className="text-sm">Please check back later</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-blue-50">
+            <th className="border border-gray-300 p-3 font-semibold text-left">Time</th>
+            {days.map(day => (
+              <th key={day} className="border border-gray-300 p-3 font-semibold text-center">
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {timeSlots.map(slot => {
+            // ✅ Handle Short / Lunch Breaks as full-width rows
+            if (slot.label.toLowerCase().includes("break")) {
+              const isLunch = slot.label.toLowerCase().includes("lunch");
+              return (
+                <tr
+                  key={slot.id}
+                  className={`text-center font-semibold ${
+                    isLunch ? "bg-orange-100" : "bg-yellow-100"
+                  }`}
+                >
+                  <td colSpan={days.length + 1}>
+                    {isLunch ? "🍱 Lunch Break" : "☕ Short Break"} ({slot.time})
+                  </td>
+                </tr>
+              );
+            }
+
+            return (
+              <tr key={slot.id} className="hover:bg-gray-50">
+                {/* Time Column */}
+                <td className="border border-gray-300 p-3 bg-gray-50 font-medium">
+                  <div className="text-sm font-semibold">{slot.label}</div>
+                  <div className="text-xs text-gray-600">{slot.time}</div>
                 </td>
+
+                {/* Day Columns */}
                 {days.map(day => {
+                  // ✅ Saturday special case: merge all slots as one PBL/ABL block
+                  if (day === "Saturday") {
+                    if (slot.id === 1) {
+                      const totalPeriods = timeSlots.filter(
+                        s => !s.label.toLowerCase().includes("break")
+                      ).length;
+
+                      return (
+                        <td
+                          key={`${day}-${slot.id}`}
+                          rowSpan={totalPeriods}
+                          className="border border-gray-300 bg-green-50 text-center font-semibold"
+                        >
+                          🚀 PBL / ABL <br />
+                          <span className="text-xs text-gray-600">
+                            Project-Based / Activity-Based Learning
+                          </span>
+                        </td>
+                      );
+                    } else {
+                      return null; // skip repeating for Saturday
+                    }
+                  }
+
                   const entry = timetable.timetable[day]?.[slot.id];
+                  if (!entry) {
+                    return (
+                      <td
+                        key={`${day}-${slot.id}`}
+                        className="border border-gray-300 p-2 text-center text-gray-400 italic"
+                      >
+                        — Free —
+                      </td>
+                    );
+                  }
+
                   return (
-                    <td key={`${day}-${slot.id}`} className="border border-gray-300 p-2">
-                      {entry?.subject && (
-                        <div className="text-sm">
-                          <div className="font-medium text-blue-800">{entry.subject}</div>
-                          {entry.teacher && (
-                            <div className="text-gray-600">{entry.teacher}</div>
+                    <td key={`${day}-${slot.id}`} className="border border-gray-300 p-3">
+                      <div className="text-sm space-y-1">
+                        <div className="font-medium text-blue-800">{entry.subject}</div>
+                        {entry.teacher && (
+                          <div className="text-gray-600 text-xs">{entry.teacher}</div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          {entry.type === "lab" && (
+                            <Badge variant="secondary" className="text-xs">
+                              Lab
+                            </Badge>
                           )}
-                          {entry.type === 'lab' && (
-                            <Badge variant="secondary" className="text-xs">Lab</Badge>
+                          {entry.type === "activity" && (
+                            <Badge variant="outline" className="text-xs">
+                              Activity
+                            </Badge>
+                          )}
+                          {entry.room && (
+                            <span className="text-xs text-gray-500">{entry.room}</span>
                           )}
                         </div>
-                      )}
+                      </div>
                     </td>
                   );
                 })}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -234,7 +404,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     <AlertDescription>{uploadMessage}</AlertDescription>
                   </Alert>
                 )}
-                
+                {showData && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-4">Current Teachers Data</h3>
                   <div className="overflow-x-auto">
@@ -249,27 +419,28 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {teachersData.slice(0, 5).map((teacher) => (
-                          <TableRow key={teacher.teacher_id}>
-                            <TableCell>{teacher.teacher_id}</TableCell>
-                            <TableCell>{teacher.name}</TableCell>
-                            <TableCell>{teacher.email}</TableCell>
-                            <TableCell>{teacher.department}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {teacher.subjects_capable.slice(0, 2).map((subject, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {subject}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
+  {teachersData.map((teacher) => (
+    <TableRow key={teacher.teacher_id}>
+      <TableCell>{teacher.teacher_id}</TableCell>
+      <TableCell>{teacher.name}</TableCell>
+      <TableCell>{teacher.email}</TableCell>
+      <TableCell>{teacher.department}</TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {teacher.subjects_capable.map((subject, idx) => (
+            <Badge key={idx} variant="secondary" className="text-xs">
+              {subject}
+            </Badge>
+          ))}
+        </div>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
                     </Table>
                   </div>
                 </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -299,7 +470,7 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     <AlertDescription>{uploadMessage}</AlertDescription>
                   </Alert>
                 )}
-                
+                {showData && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-4">Current Students Data</h3>
                   <div className="overflow-x-auto">
@@ -315,20 +486,22 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {studentsData.slice(0, 5).map((student) => (
-                          <TableRow key={student.usn}>
-                            <TableCell>{student.usn}</TableCell>
-                            <TableCell>{student.name}</TableCell>
-                            <TableCell>{student.department}</TableCell>
-                            <TableCell>{student.semester}</TableCell>
-                            <TableCell>{student.section}</TableCell>
-                            <TableCell>{student.class_teacher}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
+  {studentsData.map((student) => (
+    <TableRow key={student.usn}>
+      <TableCell>{student.usn}</TableCell>
+      <TableCell>{student.name}</TableCell>
+      <TableCell>{student.department}</TableCell>
+      <TableCell>{student.semester}</TableCell>
+      <TableCell>{student.section}</TableCell>
+      <TableCell>{student.class_teacher}</TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
                     </Table>
                   </div>
                 </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -343,39 +516,42 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {teachersData.slice(0, 3).map((teacher) => (
-                    <div key={teacher.teacher_id} className="border rounded-lg p-4">
-                      <h3 className="font-semibold mb-3">{teacher.name}</h3>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr>
-                              <th className="text-left p-2">Time</th>
-                              {days.map(day => (
-                                <th key={day} className="text-center p-2">{day.substring(0, 3)}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {timeSlots.map(slot => (
-                              <tr key={slot.id}>
-                                <td className="p-2 font-medium">{slot.time}</td>
-                                {days.map(day => (
-                                  <td key={`${day}-${slot.id}`} className="text-center p-2">
-                                    <Switch
-                                      checked={teacherAvailability[teacher.teacher_id]?.[day]?.[slot.id] ?? true}
-                                      onCheckedChange={() => toggleTeacherAvailability(teacher.teacher_id, day, slot.id)}
-                                       className="w-10 h-6"
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))}
+                  {teachersData.map((teacher) => (
+  <div key={teacher.teacher_id} className="border rounded-lg p-4">
+    <h3 className="font-semibold mb-3">{teacher.name}</h3>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr>
+            <th className="text-left p-2">Time</th>
+            {days.map(day => (
+              <th key={day} className="text-center p-2">{day.substring(0, 3)}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {timeSlots.map(slot => (
+            <tr key={slot.id}>
+              <td className="p-2 font-medium">{slot.time}</td>
+              {days.map(day => (
+                <td key={`${day}-${slot.id}`} className="text-center p-2">
+                  <Switch
+                    checked={teacherAvailability[teacher.teacher_id]?.[day]?.[slot.id] ?? true}
+                    onCheckedChange={() =>
+                      toggleTeacherAvailability(teacher.teacher_id, day, slot.id)
+                    }
+                    className="w-10 h-6"
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+))}
+
                 </div>
               </CardContent>
             </Card>
@@ -445,20 +621,37 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
                     </Button>
                   )}
                 </div>
-
+  
+  
                 {generatedTimetable && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">
-                        Timetable Preview - Semester {generatedTimetable.semester} Section {generatedTimetable.section}
-                      </h3>
-                      <Badge variant="secondary">
-                        Class Teacher: {generatedTimetable.classTeacher}
-                      </Badge>
-                    </div>
-                    {renderTimetableGrid(generatedTimetable)}
-                  </div>
-                )}
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <h3 className="text-lg font-semibold">
+        Timetable Preview - Semester {generatedTimetable.semester} Section {generatedTimetable.section}
+      </h3>
+
+      <div className="flex gap-3 items-center">
+        <Badge variant="secondary">
+          Class Teacher: {generatedTimetable.classTeacher}
+        </Badge>
+
+        <Button
+  onClick={handleAdminDownloadPDF}
+  className="ml-auto bg-green-600 hover:bg-green-700 text-white"
+>
+  Download PDF
+</Button>
+
+      </div>
+    </div>
+
+    <div id="admin-timetable-section" className="bg-white p-4 rounded-lg shadow-sm">
+      {renderTimetableGrid(generatedTimetable)}
+    </div>
+  </div>
+)}
+
+
               </CardContent>
             </Card>
           </TabsContent>

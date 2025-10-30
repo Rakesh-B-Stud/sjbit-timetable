@@ -200,8 +200,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["A"],
     subjects_capable: ["CN (Computer Networks)", "CN Lab"],
-    subject_credits: [3, 1],
-    max_sessions_per_day: [3, 1],
+    subject_credits: [4, 1],
+    max_sessions_per_day: [4, 1],
     password: "Dr. Prasad A Y",
     available: true
   },
@@ -214,7 +214,7 @@ export const teachersData = [
     section_handling: ["A"],
     subjects_capable: ["SE&PM (Software Engineering & Project Management)"],
     subject_credits: [4],
-    max_sessions_per_day: [3],
+    max_sessions_per_day: [4],
     password: "Shubha T V",
     available: true
   },
@@ -227,7 +227,7 @@ export const teachersData = [
     section_handling: ["A"],
     subjects_capable: ["DBMS (Database Management Systems)", "DBMS Lab"],
     subject_credits: [4, 1],
-    max_sessions_per_day: [3, 1],
+    max_sessions_per_day: [4, 1],
     password: "Dr. Bindiya M K",
     available: true
   },
@@ -239,8 +239,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["A"],
     subjects_capable: ["A. JAVA (Advanced Java)"],
-    subject_credits: [3],
-    max_sessions_per_day: [3],
+    subject_credits: [4],
+    max_sessions_per_day: [4],
     password: "Rajani",
     available: true
   },
@@ -252,8 +252,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["A", "B", "B"],
     subjects_capable: ["DVT (Emerging Technology Concepts)", "CN (Computer Networks)", "CN Lab"],
-    subject_credits: [3, 3, 1],
-    max_sessions_per_day: [3, 3, 1],
+    subject_credits: [4, 4, 1],
+    max_sessions_per_day: [4, 4, 1],
     password: "Vinutha K",
     available: true
   },
@@ -265,8 +265,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["A", "B", "C"],
     subjects_capable: ["React JS (ETC)", "React JS (ETC)", "React JS (ETC)"],
-    subject_credits: [3, 3, 3],
-    max_sessions_per_day: [3, 3, 3],
+    subject_credits: [4, 4, 4],
+    max_sessions_per_day: [4, 4, 4],
     password: "Kavya G",
     available: true
   },
@@ -279,7 +279,7 @@ export const teachersData = [
     section_handling: ["A"],
     subjects_capable: ["Bioscience"],
     subject_credits: [1],
-    max_sessions_per_day: [3],
+    max_sessions_per_day: [4],
     password: "Paramesh",
     available: true
   },
@@ -317,8 +317,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["A", "B", "C", "C"],
     subjects_capable: ["NSS", "NSS", "NSS", "A. JAVA (Advanced Java)"],
-    subject_credits: [1, 1, 1, 3],
-    max_sessions_per_day: [3, 3, 3, 3],
+    subject_credits: [1, 1, 1, 4],
+    max_sessions_per_day: [3, 3, 3, 4],
     password: "Dr. Arun Kumar D R",
     available: true
   },
@@ -330,8 +330,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["A", "B", "C", "B", "C"],
     subjects_capable: ["IKS", "IKS", "IKS", "DVT (Emerging Technology Concepts)", "DVT (Emerging Technology Concepts)"],
-    subject_credits: [1, 1, 1, 3, 3],
-    max_sessions_per_day: [3, 3, 3, 3, 3],
+    subject_credits: [1, 1, 1, 4, 4],
+    max_sessions_per_day: [4, 4, 4, 4, 4],
     password: "Dr. Prakruthi M K",
     available: true
   },
@@ -344,7 +344,7 @@ export const teachersData = [
     section_handling: ["A", "C", "C"],
     subjects_capable: ["SE&PM Lab", "DBMS (Database Management Systems)", "DBMS Lab"],
     subject_credits: [1, 4, 1],
-    max_sessions_per_day: [1, 3, 1],
+    max_sessions_per_day: [1, 4, 1],
     password: "Jyothi P K",
     available: true
   },
@@ -370,7 +370,7 @@ export const teachersData = [
     section_handling: ["B", "C", "C"],
     subjects_capable: ["SE&PM (Software Engineering & Project Management)", "SE&PM (Software Engineering & Project Management)", "SE&PM Lab"],
     subject_credits: [4, 4, 1],
-    max_sessions_per_day: [3, 3, 1],
+    max_sessions_per_day: [4, 4, 1],
     password: "Dr. Shantha Kumar H C",
     available: true
   },
@@ -383,7 +383,7 @@ export const teachersData = [
     section_handling: ["B", "C", "C"],
     subjects_capable: ["DBMS (Database Management Systems)", "DBMS Lab", "CC Lab"],
     subject_credits: [4, 1, 1],
-    max_sessions_per_day: [3, 1, 1],
+    max_sessions_per_day: [4, 1, 1],
     password: "Dr. Ajay B N",
     available: true
   },
@@ -395,8 +395,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["B"],
     subjects_capable: ["A. JAVA (Advanced Java)"],
-    subject_credits: [3],
-    max_sessions_per_day: [3],
+    subject_credits: [4],
+    max_sessions_per_day: [4],
     password: "Dhananjaya M",
     available: true
   },
@@ -421,8 +421,8 @@ export const teachersData = [
     semester_handling: [5],
     section_handling: ["B", "C", "C"],
     subjects_capable: ["SE&PM Lab", "CN (Computer Networks)", "CN Lab"],
-    subject_credits: [1, 3, 1],
-    max_sessions_per_day: [1, 3, 1],
+    subject_credits: [1, 4, 1],
+    max_sessions_per_day: [1, 4, 1],
     password: "Lochan Gowda M",
     available: true
   },
@@ -435,7 +435,7 @@ export const teachersData = [
     section_handling: ["B"],
     subjects_capable: ["CC Lab"],
     subject_credits: [1],
-    max_sessions_per_day: [1],
+    max_sessions_per_day: [4],
     password: "Srinidhi K S",
     available: true
   },
@@ -472,12 +472,15 @@ export const teachersData = [
 export const timeSlots = [
   { id: 1, time: "8:30-9:30", label: "Period 1" },
   { id: 2, time: "9:30-10:30", label: "Period 2" },
-  { id: 3, time: "10:45-11:45", label: "Period 3" }, // After short break
+  { id: 8, time: "10:30-10:45", label: "Short Break" },
+  { id: 3, time: "10:45-11:45", label: "Period 3" },
   { id: 4, time: "11:45-12:45", label: "Period 4" },
-  { id: 5, time: "1:30-2:30", label: "Period 5" }, // After lunch break
+  { id: 9, time: "12:45-1:30", label: "Lunch Break" },
+  { id: 5, time: "1:30-2:30", label: "Period 5" },
   { id: 6, time: "2:30-3:30", label: "Period 6" },
-  { id: 7, time: "3:30-4:30", label: "Period 7" }
+  { id: 7, time: "3:30-4:30", label: "Period 7" },
 ];
+
 
 export const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -496,7 +499,8 @@ export const subjectConfig = {
         "CN Lab",
         "DBMS Lab",
         "SE&PM Lab"
-      ]
+      ],
+      classTeacher: 'Shubha T V',
     },
     B: {
       subjects: [
@@ -510,7 +514,8 @@ export const subjectConfig = {
         "CN Lab",
         "DBMS Lab", 
         "SE&PM Lab"
-      ]
+      ],
+      classTeacher: 'Vinutha K',
     },
     C: {
       subjects: [
@@ -524,7 +529,8 @@ export const subjectConfig = {
         "CN Lab",
         "DBMS Lab",
         "SE&PM Lab"
-      ]
+      ],
+      classTeacher: 'Jyothi P K',
     }
   }
 };

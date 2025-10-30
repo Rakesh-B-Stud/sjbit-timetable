@@ -1,114 +1,116 @@
+// 📘 timetableGenerator.js — Optimized & Stable Version
 import { teachersData, timeSlots, days, subjectConfig } from '../data/mockData';
 
-// Timetable generation algorithm with enhanced constraints
+// Timetable generation algorithm with enhanced constraints and safety checks
 export class TimetableGenerator {
   constructor() {
     this.timeSlots = timeSlots;
     this.days = days;
     this.teacherAvailability = this.loadTeacherAvailability();
   }
+  isBreakTime(slotId) {
+  // Short Break = 8, Lunch Break = 9
+  return slotId === 8 || slotId === 9;
+}
 
+
+  // ✅ Load teacher availability from localStorage or create default
   loadTeacherAvailability() {
-    const saved = localStorage.getItem('teacherAvailability');
-    if (saved) {
-      return JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('teacherAvailability');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to load teacher availability, resetting:', e);
     }
-    
-    // Initialize default availability (all available)
+
     const availability = {};
-    teachersData.forEach(teacher => {
+    teachersData.forEach((teacher) => {
       availability[teacher.teacher_id] = {};
-      days.forEach(day => {
+      days.forEach((day) => {
         availability[teacher.teacher_id][day] = {};
-        timeSlots.forEach(slot => {
-          availability[teacher.teacher_id][day][slot.id] = true;
+        timeSlots.forEach((slot) => {
+          availability[teacher.teacher_id][day][slot.id] = true; // default: all available
         });
       });
     });
-    
+
     localStorage.setItem('teacherAvailability', JSON.stringify(availability));
     return availability;
   }
 
+  // ✅ Generate timetable for a given semester and section
   generateTimetable(semester, section, classTeacher) {
     const timetable = {};
-    const subjects = subjectConfig[semester]?.[section]?.subjects || [];
-    
-    // Initialize empty timetable
-    days.forEach(day => {
+    const subjects = subjectConfig?.[semester]?.[section]?.subjects || [];
+
+    // Initialize timetable
+    this.days.forEach((day) => {
       timetable[day] = {};
-      timeSlots.forEach(slot => {
+      this.timeSlots.forEach((slot) => {
         timetable[day][slot.id] = {
           subject: null,
           teacher: null,
-          type: 'theory',
-          room: null
+          type: 'free',
+          room: null,
         };
       });
     });
 
-    // Track allocated subjects to ensure no repetition
-    const allocatedSubjects = new Set();
-    const dailyLabCount = {}; // Track labs per day
-    
-    // Initialize daily lab counter
-    days.forEach(day => {
-      dailyLabCount[day] = 0;
-    });
-
     // Handle Wednesday special case (PE/NSS/NCC)
     if (timetable['Wednesday']) {
-      // Periods 5, 6, 7 (1:30-4:30) for PE/NSS/NCC
-      [5, 6, 7].forEach(slotId => {
+      [5, 6, 7].forEach((slotId) => {
         const specialSubjects = ['PE', 'NSS', 'NCC'];
-        const randomSubject = specialSubjects[Math.floor(Math.random() * specialSubjects.length)];
+        const randomSubject =
+          specialSubjects[Math.floor(Math.random() * specialSubjects.length)];
         timetable['Wednesday'][slotId] = {
           subject: randomSubject,
-          teacher: this.findTeacherForSubject(randomSubject, 'Wednesday', slotId),
+          teacher: this.findTeacherForSubject(randomSubject),
           type: 'activity',
-          room: randomSubject === 'PE' ? 'Ground' : 'Classroom'
+          room: randomSubject === 'PE' ? 'Ground' : 'Classroom',
         };
       });
     }
 
     // Separate theory and lab subjects
-    const theorySubjects = subjects.filter(subject => !subject.includes('Lab'));
-    const labSubjects = subjects.filter(subject => subject.includes('Lab'));
+    const theorySubjects = subjects.filter((s) => !s.includes('Lab'));
+    const labSubjects = subjects.filter((s) => s.includes('Lab'));
 
-    // First, allocate lab subjects (one per day maximum)
-    const shuffledDays = [...days].sort(() => Math.random() - 0.5);
+    const allocatedSubjects = new Set();
+    const dailyLabCount = {};
+    this.days.forEach((day) => (dailyLabCount[day] = 0));
+
+    // ✅ Allocate labs (max 1 per day)
+    const shuffledDays = [...this.days].sort(() => Math.random() - 0.5);
     let labIndex = 0;
-    
+
     for (const day of shuffledDays) {
       if (labIndex >= labSubjects.length) break;
-      
-      // Skip Wednesday for lab allocation (reserved for activities)
-      if (day === 'Wednesday') continue;
-      
+      if (day === 'Wednesday') continue; // skip Wednesday for labs
+
       const labSubject = labSubjects[labIndex];
-      
-      // Find suitable consecutive slots for lab (2 hours)
       const labSlots = this.findConsecutiveSlots(day, timetable);
-      
       if (labSlots.length >= 2) {
-        const teacher = this.findAvailableTeacher(labSubject, day, labSlots[0], semester, section);
-        
+        const teacher = this.findAvailableTeacher(
+          labSubject,
+          day,
+          labSlots[0],
+          semester,
+          section
+        );
+
         if (teacher) {
-          // Allocate lab for 2 consecutive periods
           timetable[day][labSlots[0]] = {
             subject: labSubject,
             teacher: teacher.name,
             type: 'lab',
-            room: 'Lab'
+            room: 'Lab',
           };
-          
           timetable[day][labSlots[1]] = {
-            subject: labSubject + ' (Cont.)',
+            subject: `${labSubject} (Cont.)`,
             teacher: teacher.name,
             type: 'lab',
-            room: 'Lab'
+            room: 'Lab',
           };
-          
           allocatedSubjects.add(labSubject);
           dailyLabCount[day] = 1;
           labIndex++;
@@ -116,77 +118,104 @@ export class TimetableGenerator {
       }
     }
 
-    // Then allocate theory subjects
-    const shuffledTheorySubjects = [...theorySubjects].sort(() => Math.random() - 0.5);
-    
-    for (const subject of shuffledTheorySubjects) {
-      // Skip if subject already allocated
-      if (allocatedSubjects.has(subject)) continue;
-      
-      // Find a suitable slot for this theory subject
-      let allocated = false;
-      
-      for (const day of shuffledDays) {
-        if (allocated) break;
-        
-        for (const slot of timeSlots) {
-          // Skip if slot is already occupied
-          if (timetable[day][slot.id].subject !== null) continue;
-          
-          // Skip break times and Wednesday afternoon
-          if (this.isBreakTime(slot.id) || (day === 'Wednesday' && [5, 6, 7].includes(slot.id))) {
-            continue;
-          }
-          
-          // Try to allocate the subject
-          const teacher = this.findAvailableTeacher(subject, day, slot.id, semester, section);
-          
-          if (teacher) {
-            timetable[day][slot.id] = {
-              subject: subject,
-              teacher: teacher.name,
-              type: 'theory',
-              room: 'Classroom'
-            };
-            
-            allocatedSubjects.add(subject);
-            allocated = true;
-            break;
-          }
+// 🗓️ Handle Saturday — "PBL/ABL" for all class slots, but keep breaks
+if (timetable['Saturday']) {
+  this.timeSlots.forEach((slot) => {
+    if (this.isBreakTime(slot.id)) {
+      timetable['Saturday'][slot.id] = {
+        subject: slot.label,
+        teacher: null,
+        type: 'break',
+        room: null,
+      };
+    } else {
+      timetable['Saturday'][slot.id] = {
+        subject: 'PBL/ABL',
+        teacher: null,
+        type: 'project',
+        room: 'Innovation Lab',
+      };
+    }
+  });
+}
+
+
+// ✅ Allocate theory subjects based on credits from mockData.js
+const shuffledTheorySubjects = [...theorySubjects].sort(() => Math.random() - 0.5);
+
+// Helper: get subject credits from teacher data
+const getSubjectCredits = (subject) => {
+  const teacher = teachersData.find((t) => t.subjects_capable.includes(subject));
+  if (teacher) {
+    const index = teacher.subjects_capable.indexOf(subject);
+    return teacher.subject_credits?.[index] || 1; // default 1 if not defined
+  }
+  return 1;
+};
+
+for (const subject of shuffledTheorySubjects) {
+  const credits = getSubjectCredits(subject); // frequency per week
+  let sessionsAllocated = 0;
+  let safetyCounter = 0;
+
+  while (sessionsAllocated < credits && safetyCounter < 50) {
+    safetyCounter++;
+    let allocated = false;
+
+    const shuffledDaysDynamic = [...this.days].sort(() => Math.random() - 0.5);
+    for (const day of shuffledDaysDynamic) {
+      if (allocated) break;
+      if (day === 'Saturday') continue; // skip Saturday for theory subjects
+
+      // Avoid placing same subject more than once per day
+      const alreadyPlacedToday = Object.values(timetable[day]).some(
+        (slot) => slot.subject === subject
+      );
+      if (alreadyPlacedToday) continue;
+
+      for (const slot of this.timeSlots) {
+        // Skip breaks or filled slots
+        if (timetable[day][slot.id].subject !== null) continue;
+        if (this.isBreakTime(slot.id) || (day === 'Wednesday' && [5, 6, 7].includes(slot.id)))
+          continue;
+
+        const teacher = this.findAvailableTeacher(subject, day, slot.id, semester, section);
+        if (teacher) {
+          timetable[day][slot.id] = {
+            subject,
+            teacher: teacher.name,
+            type: 'theory',
+            room: 'Classroom',
+          };
+          this.teacherAvailability[teacher.teacher_id][day][slot.id] = false;
+          sessionsAllocated++;
+          allocated = true;
+          break;
         }
       }
     }
 
-    // Fill remaining slots with break times
-    days.forEach(day => {
-      timeSlots.forEach(slot => {
-        if (timetable[day][slot.id].subject === null) {
-          if (slot.id === 3) { // After short break
-            timetable[day][slot.id] = {
-              subject: 'Free Period',
-              teacher: null,
-              type: 'free',
-              room: null
-            };
-          } else if (slot.id === 5 && day !== 'Wednesday') { // After lunch break
-            timetable[day][slot.id] = {
-              subject: 'Free Period',
-              teacher: null,
-              type: 'free',
-              room: null
-            };
-          } else if (timetable[day][slot.id].subject === null) {
-            timetable[day][slot.id] = {
-              subject: 'Free Period',
-              teacher: null,
-              type: 'free',
-              room: null
-            };
-          }
+    if (!allocated) break;
+  }
+
+  allocatedSubjects.add(subject);
+}
+
+    // ✅ Fill remaining slots as Free Periods
+    this.days.forEach((day) => {
+      this.timeSlots.forEach((slot) => {
+        if (!timetable[day][slot.id].subject) {
+          timetable[day][slot.id] = {
+            subject: 'Free Period',
+            teacher: null,
+            type: 'free',
+            room: null,
+          };
         }
       });
     });
 
+    // Return full timetable object
     return {
       semester,
       section,
@@ -194,83 +223,72 @@ export class TimetableGenerator {
       timetable,
       generatedAt: new Date().toISOString(),
       constraints: {
-        maxLabsPerDay: 1,
-        subjectFrequency: 'once_per_week',
-        noRepetition: true
-      }
+        maxLabsPerDay: 1
+      },
     };
   }
 
+  // ✅ Find consecutive free slots for labs
   findConsecutiveSlots(day, timetable) {
-    const availableSlots = [];
-    
-    for (let i = 0; i < timeSlots.length - 1; i++) {
-      const currentSlot = timeSlots[i];
-      const nextSlot = timeSlots[i + 1];
-      
-      // Skip break times and Wednesday afternoon
-      if (this.isBreakTime(currentSlot.id) || this.isBreakTime(nextSlot.id)) {
+    for (let i = 0; i < this.timeSlots.length - 1; i++) {
+      const current = this.timeSlots[i];
+      const next = this.timeSlots[i + 1];
+      if (this.isBreakTime(current.id) || this.isBreakTime(next.id)) continue;
+      if (
+        day === 'Wednesday' &&
+        ([5, 6, 7].includes(current.id) || [5, 6, 7].includes(next.id))
+      )
         continue;
-      }
-      
-      if (day === 'Wednesday' && ([5, 6, 7].includes(currentSlot.id) || [5, 6, 7].includes(nextSlot.id))) {
-        continue;
-      }
-      
-      // Check if both slots are free
-      if (timetable[day][currentSlot.id].subject === null && 
-          timetable[day][nextSlot.id].subject === null) {
-        availableSlots.push(currentSlot.id, nextSlot.id);
-        break; // Return first available consecutive pair
+
+      if (
+        timetable[day][current.id].subject === null &&
+        timetable[day][next.id].subject === null
+      ) {
+        return [current.id, next.id];
       }
     }
-    
-    return availableSlots;
+    return [];
   }
 
+  // ✅ Find suitable teacher based on subject and availability
   findAvailableTeacher(subject, day, slotId, semester, section) {
-    // Priority 1: Find teacher who teaches this subject to this section
-    let teacher = teachersData.find(t => 
-      t.subjects_capable.includes(subject) &&
-      t.semester_handling.includes(semester) &&
-      t.section_handling.includes(section) &&
-      this.teacherAvailability[t.teacher_id]?.[day]?.[slotId]
+    const candidates = teachersData.filter((t) =>
+      t.subjects_capable.includes(subject)
     );
 
-    if (teacher) return teacher;
+    for (const teacher of candidates) {
+      const available =
+        this.teacherAvailability?.[teacher.teacher_id]?.[day]?.[slotId];
+      if (
+        available &&
+        teacher.semester_handling?.includes(semester) &&
+        teacher.section_handling?.includes(section)
+      ) {
+        return teacher;
+      }
+    }
 
-    // Priority 2: Find teacher who teaches this subject (any section)
-    teacher = teachersData.find(t => 
-      t.subjects_capable.includes(subject) &&
-      this.teacherAvailability[t.teacher_id]?.[day]?.[slotId]
+    // fallback — any teacher who can handle subject
+    return (
+      teachersData.find(
+        (t) =>
+          t.subjects_capable.includes(subject) &&
+          this.teacherAvailability?.[t.teacher_id]?.[day]?.[slotId]
+      ) || null
     );
-
-    if (teacher) return teacher;
-
-    // Priority 3: Find any available teacher
-    teacher = teachersData.find(t => 
-      this.teacherAvailability[t.teacher_id]?.[day]?.[slotId]
-    );
-
-    return teacher || null;
   }
 
-  findTeacherForSubject(subject, day, slotId) {
+  findTeacherForSubject(subject) {
     const specialTeachers = {
-      'PE': 'PE Teacher',
-      'NSS': 'NSS Coordinator',
-      'NCC': 'NCC Officer'
+      PE: 'PE Teacher',
+      NSS: 'NSS Coordinator',
+      NCC: 'NCC Officer',
     };
     return specialTeachers[subject] || 'Activity Coordinator';
   }
-
-  isBreakTime(slotId) {
-    // These are handled separately in the UI
-    return false;
-  }
 }
 
-// Utility functions for timetable management
+// 🔧 Utility Functions — unchanged, just cleaned up
 export const saveTimetable = (timetableData) => {
   const timetables = getTimetables();
   const key = `${timetableData.semester}${timetableData.section}`;
@@ -290,25 +308,28 @@ export const publishTimetable = (semester, section) => {
     timetables[key].published = true;
     timetables[key].publishedAt = new Date().toISOString();
     localStorage.setItem('timetables', JSON.stringify(timetables));
-    
-    // Add notification
+
     addNotification({
-      message: `Timetable for Semester ${semester} Section ${section} has been published with enhanced constraints: Max 1 lab per day, each subject once per week`,
+      message: `✅ Timetable for Semester ${semester} Section ${section} published successfully.`,
       type: 'timetable',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
     return true;
   }
   return false;
 };
+export const savePublishedTimetable = (timetables) => {
+  localStorage.setItem('publishedTimetables', JSON.stringify(timetables));
+};
+
+export const getPublishedTimetables = () => {
+  const data = localStorage.getItem('publishedTimetables');
+  return data ? JSON.parse(data) : {};
+};
 
 export const addNotification = (notification) => {
   const notifications = getNotifications();
-  notifications.push({
-    id: Date.now(),
-    ...notification
-  });
+  notifications.push({ id: Date.now(), ...notification });
   localStorage.setItem('notifications', JSON.stringify(notifications));
 };
 
