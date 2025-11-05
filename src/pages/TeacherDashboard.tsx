@@ -19,7 +19,7 @@ import { clearUserSession } from '@/utils/auth';
 import { timeSlots, days } from '@/data/mockData';
 import { getTimetables, getNotifications } from '@/utils/timetableGenerator';
 import { User as UserType, TeacherSchedule, TimetableEntry } from '@/types';
-
+import collegeLogo from '@/assets/sjbit_logo.png';
 
 interface TeacherDashboardProps {
   user: UserType;
@@ -207,9 +207,14 @@ days.forEach(day => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                <Users className="h-6 w-6 text-white" />
-              </div>
+              {/* College Logo */}
+          <div className="mx-auto w-20 h-20 rounded-full overflow-hidden shadow-md bg-white/80 p-2">
+            <img
+              src={collegeLogo}
+              alt="College Logo"
+              className="object-contain w-full h-full"
+            />
+          </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Teacher Portal</h1>
                 <p className="text-sm text-gray-600">SJBIT Timetable System</p>
