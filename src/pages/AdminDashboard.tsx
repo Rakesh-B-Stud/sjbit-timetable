@@ -31,7 +31,7 @@ import { User, Timetable } from '@/types';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import logo from "../assets/sjbit-logo.png"; // adjust path if needed
-
+import collegeLogo from '@/assets/sjbit_logo.png';
 
 interface AdminDashboardProps {
   user: User;
@@ -325,9 +325,14 @@ const handleAdminDownloadPDF = async () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Settings className="h-6 w-6 text-white" />
-              </div>
+              {/* College Logo */}
+          <div className="mx-auto w-20 h-20 rounded-full overflow-hidden shadow-md bg-white/80 p-2">
+            <img
+              src={collegeLogo}
+              alt="College Logo"
+              className="object-contain w-full h-full"
+            />
+          </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
                 <p className="text-sm text-gray-600">SJBIT Timetable Management</p>
@@ -347,14 +352,45 @@ const handleAdminDownloadPDF = async () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="teachers">Teachers Data</TabsTrigger>
-            <TabsTrigger value="students">Students Data</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
-            <TabsTrigger value="timetable">Timetable</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          </TabsList>
+          <TabsList className="grid w-full grid-cols-6 bg-gray-100 rounded-lg p-1">
+  <TabsTrigger
+    value="overview"
+    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-600 font-medium rounded-md"
+  >
+    Overview
+  </TabsTrigger>
+  <TabsTrigger
+    value="teachers"
+    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-600 font-medium rounded-md"
+  >
+    Teachers Data
+  </TabsTrigger>
+  <TabsTrigger
+    value="students"
+    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-600 font-medium rounded-md"
+  >
+    Students Data
+  </TabsTrigger>
+  <TabsTrigger
+    value="availability"
+    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-600 font-medium rounded-md"
+  >
+    Availability
+  </TabsTrigger>
+  <TabsTrigger
+    value="timetable"
+    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-600 font-medium rounded-md"
+  >
+    Timetable
+  </TabsTrigger>
+  <TabsTrigger
+    value="notifications"
+    className="data-[state=active]:bg-blue-600 data-[state=active]:text-white text-gray-600 font-medium rounded-md"
+  >
+    Notifications
+  </TabsTrigger>
+</TabsList>
+
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
