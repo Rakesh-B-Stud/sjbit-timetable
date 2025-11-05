@@ -56,19 +56,33 @@ export default function AdminDashboard({ user, onLogout }: AdminDashboardProps) 
   };
   
 
-  const [uploadMessage, setUploadMessage] = useState('');
+const [uploadMessage, setUploadMessage] = useState('');
 const [teacherAvailability, setTeacherAvailability] = useState(() => {
   const saved = localStorage.getItem('teacherAvailability');
   return saved ? JSON.parse(saved) : {};
 });
-const [showData, setShowData] = useState(false);
 
-  const handleFileUpload = (type: 'students' | 'teachers') => {
-  setUploadMessage(`${type === 'students' ? 'Students' : 'Teachers'} data uploaded successfully! Data has been processed and stored.`);
-  setShowData(true); // 👈 show tables after any successful upload
+// 👇 separate visibility states
+const [showTeacherData, setShowTeacherData] = useState(false);
+const [showStudentData, setShowStudentData] = useState(false);
+
+// updated handler
+const handleFileUpload = (type: 'students' | 'teachers') => {
+  setUploadMessage(
+    `${type === 'students' ? 'Students' : 'Teachers'} data uploaded successfully! Data has been processed and stored.`
+  );
+
+  // set visibility correctly
+  if (type === 'teachers') {
+    setShowTeacherData(true);
+    setShowStudentData(false);
+  } else {
+    setShowStudentData(true);
+    setShowTeacherData(false);
+  }
+
   setTimeout(() => setUploadMessage(''), 3000);
 };
-
 
   const handleGenerateTimetable = () => {
     if (!selectedSemester || !selectedSection || !selectedClassTeacher) {
@@ -404,7 +418,7 @@ const handleAdminDownloadPDF = async () => {
                     <AlertDescription>{uploadMessage}</AlertDescription>
                   </Alert>
                 )}
-                {showData && (
+                {showTeacherData && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-4">Current Teachers Data</h3>
                   <div className="overflow-x-auto">
@@ -470,7 +484,7 @@ const handleAdminDownloadPDF = async () => {
                     <AlertDescription>{uploadMessage}</AlertDescription>
                   </Alert>
                 )}
-                {showData && (
+                {showStudentData && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-4">Current Students Data</h3>
                   <div className="overflow-x-auto">
