@@ -6,37 +6,40 @@ export class TimetableGenerator {
   constructor() {
     this.timeSlots = timeSlots;
     this.days = days;
-    this.teacherAvailability = this.loadTeacherAvailability();
+    this.teacherAvailability = this.loadTeacherAvailability(false);
   }
   isBreakTime(slotId) {
-  // Short Break = 8, Lunch Break = 9
-  return slotId === 8 || slotId === 9;
+  // Short Break = 3, Lunch Break = 6
+  return slotId === 3 || slotId === 6;
 }
 
 
   // ✅ Load teacher availability from localStorage or create default
-  loadTeacherAvailability() {
+  loadTeacherAvailability(forceReset = false) {
+  if (!forceReset) {
     try {
       const saved = localStorage.getItem('teacherAvailability');
       if (saved) return JSON.parse(saved);
     } catch (e) {
       console.warn('Failed to load teacher availability, resetting:', e);
     }
+  }
 
-    const availability = {};
-    teachersData.forEach((teacher) => {
-      availability[teacher.teacher_id] = {};
-      days.forEach((day) => {
-        availability[teacher.teacher_id][day] = {};
-        timeSlots.forEach((slot) => {
-          availability[teacher.teacher_id][day][slot.id] = true; // default: all available
-        });
+  const availability = {};
+  teachersData.forEach((teacher) => {
+    availability[teacher.teacher_id] = {};
+    days.forEach((day) => {
+      availability[teacher.teacher_id][day] = {};
+      timeSlots.forEach((slot) => {
+        availability[teacher.teacher_id][day][slot.id] = true; // default available
       });
     });
+  });
 
-    localStorage.setItem('teacherAvailability', JSON.stringify(availability));
-    return availability;
-  }
+  localStorage.setItem('teacherAvailability', JSON.stringify(availability));
+  return availability;
+}
+
 
   // ✅ Generate timetable for a given semester and section
   generateTimetable(semester, section, classTeacher) {
@@ -58,7 +61,7 @@ export class TimetableGenerator {
 
     // Handle Wednesday special case (PE/NSS/NCC)
     if (timetable['Wednesday']) {
-      [5, 6, 7].forEach((slotId) => {
+      [7, 8, 9].forEach((slotId) => {
         const specialSubjects = ['PE', 'NSS', 'NCC'];
         const randomSubject =
           specialSubjects[Math.floor(Math.random() * specialSubjects.length)];
@@ -118,22 +121,58 @@ export class TimetableGenerator {
       }
     }
 
-// 🗓️ Handle Saturday — "PBL/ABL" for all class slots, but keep breaks
-if (timetable['Saturday']) {
+// 🗓️ Handle Friday & Saturday for 7th Semester
+// 🗓️ Handle Friday & Saturday for 7th Semester
+if (semester === 7) {
+  // 🧠 Find the correct guide for each section
+  const guideMapping = {
+    "A": "Laxmi Shabadi",
+    "B": "Srinidhi K S",
+    "C": "Vijaylakshmi"
+  };
+
+  const guideName = guideMapping[section] || "Project Guide";
+
+  ["Friday", "Saturday"].forEach((day) => {
+    // Make sure the day exists in the timetable
+    if (!timetable[day]) timetable[day] = {};
+
+    this.timeSlots.forEach((slot) => {
+      if (this.isBreakTime(slot.id)) {
+        timetable[day][slot.id] = {
+          subject: slot.label,
+          teacher: null,
+          type: "break",
+          room: null,
+        };
+      } else {
+        timetable[day][slot.id] = {
+          subject: "Project Phase II",
+          teacher: guideName,
+          type: "project",
+          room: "Project Lab",
+        };
+      }
+    });
+  });
+} else {
+  // 📚 For all other semesters → Saturday = PBL/ABL
+  if (!timetable["Saturday"]) timetable["Saturday"] = {};
+
   this.timeSlots.forEach((slot) => {
     if (this.isBreakTime(slot.id)) {
-      timetable['Saturday'][slot.id] = {
+      timetable["Saturday"][slot.id] = {
         subject: slot.label,
         teacher: null,
-        type: 'break',
+        type: "break",
         room: null,
       };
     } else {
-      timetable['Saturday'][slot.id] = {
-        subject: 'PBL/ABL',
+      timetable["Saturday"][slot.id] = {
+        subject: "PBL/ABL",
         teacher: null,
-        type: 'project',
-        room: 'Innovation Lab',
+        type: "project",
+        room: "Innovation Lab",
       };
     }
   });
@@ -176,7 +215,7 @@ for (const subject of shuffledTheorySubjects) {
       for (const slot of this.timeSlots) {
         // Skip breaks or filled slots
         if (timetable[day][slot.id].subject !== null) continue;
-        if (this.isBreakTime(slot.id) || (day === 'Wednesday' && [5, 6, 7].includes(slot.id)))
+        if (this.isBreakTime(slot.id) || (day === 'Wednesday' && [7, 8, 9].includes(slot.id)))
           continue;
 
         const teacher = this.findAvailableTeacher(subject, day, slot.id, semester, section);
@@ -236,7 +275,7 @@ for (const subject of shuffledTheorySubjects) {
       if (this.isBreakTime(current.id) || this.isBreakTime(next.id)) continue;
       if (
         day === 'Wednesday' &&
-        ([5, 6, 7].includes(current.id) || [5, 6, 7].includes(next.id))
+        ([7, 8, 9].includes(current.id) || [7, 8, 9].includes(next.id))
       )
         continue;
 
@@ -289,17 +328,36 @@ for (const subject of shuffledTheorySubjects) {
 }
 
 // 🔧 Utility Functions — unchanged, just cleaned up
-export const saveTimetable = (timetableData) => {
-  const timetables = getTimetables();
-  const key = `${timetableData.semester}${timetableData.section}`;
-  timetables[key] = timetableData;
-  localStorage.setItem('timetables', JSON.stringify(timetables));
+// 🔧 Utility Functions — Optimized for multi-timetable persistence
+export const getTimetables = () => {
+  try {
+    const saved = localStorage.getItem('timetables');
+    if (saved) return JSON.parse(saved);
+    return {}; // ✅ Always return an object, never null
+  } catch (e) {
+    console.warn('Failed to parse timetables from localStorage:', e);
+    return {};
+  }
 };
 
-export const getTimetables = () => {
-  const saved = localStorage.getItem('timetables');
-  return saved ? JSON.parse(saved) : {};
+export const saveTimetable = (timetableData) => {
+  try {
+    const timetables = getTimetables(); // load existing
+    const key = `${timetableData.semester}${timetableData.section}`;
+
+    // ✅ Prevent accidental overwrite if the same key already exists
+    timetables[key] = {
+      ...timetableData,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem('timetables', JSON.stringify(timetables));
+    console.log(`✅ Timetable saved for ${key}`, timetables);
+  } catch (e) {
+    console.error('Error saving timetable:', e);
+  }
 };
+
 
 export const publishTimetable = (semester, section) => {
   const timetables = getTimetables();

@@ -193,6 +193,7 @@ const handleAdminDownloadPDF = async () => {
     localStorage.setItem('teacherAvailability', JSON.stringify(updated));
   };
 
+  
   const renderTimetableGrid = (timetable: Timetable | null) => {
   if (!timetable) {
     return (
@@ -205,7 +206,8 @@ const handleAdminDownloadPDF = async () => {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto w-full max-w-full px-2 sm:px-4">
+  <div className="min-w-[700px] sm:min-w-full">
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-blue-50">
@@ -247,28 +249,30 @@ const handleAdminDownloadPDF = async () => {
                 {/* Day Columns */}
                 {days.map(day => {
                   // ✅ Saturday special case: merge all slots as one PBL/ABL block
-                  if (day === "Saturday") {
-                    if (slot.id === 1) {
-                      const totalPeriods = timeSlots.filter(
-                        s => !s.label.toLowerCase().includes("break")
-                      ).length;
+                  // ✅ Saturday special case: merge all slots as one PBL/ABL block
+                // ✅ Saturday special case: merge all slots as one PBL/ABL block (except semester 7)
+                if (day === "Saturday" && timetable.semester !== 7) {
+                  // Only render the cell once for the first slot
+                  if (slot.id === 1) {
+                    // Count total rows including breaks
+                    const totalRows = timeSlots.length;
 
-                      return (
-                        <td
-                          key={`${day}-${slot.id}`}
-                          rowSpan={totalPeriods}
-                          className="border border-gray-300 bg-green-50 text-center font-semibold"
-                        >
-                          🚀 PBL / ABL <br />
-                          <span className="text-xs text-gray-600">
-                            Project-Based / Activity-Based Learning
-                          </span>
-                        </td>
-                      );
-                    } else {
-                      return null; // skip repeating for Saturday
-                    }
+                    return (
+                      <td
+                        key={`${day}-${slot.id}`}
+                        rowSpan={totalRows}
+                        className="border border-gray-300 bg-green-50 text-center font-semibold"
+                      >
+                        🚀 PBL / ABL <br />
+                        <span className="text-xs text-gray-600">
+                          Project-Based / Activity-Based Learning
+                        </span>
+                      </td>
+                    );
+                  } else {
+                    return null; // skip repeating for Saturday
                   }
+                }
 
                   const entry = timetable.timetable[day]?.[slot.id];
                   if (!entry) {
@@ -313,6 +317,7 @@ const handleAdminDownloadPDF = async () => {
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };
@@ -624,7 +629,14 @@ const handleAdminDownloadPDF = async () => {
                         <SelectValue placeholder="Select semester" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="1">1th Semester</SelectItem>
+                        <SelectItem value="2">2th Semester</SelectItem>
+                        <SelectItem value="3">3th Semester</SelectItem>
+                        <SelectItem value="4">4th Semester</SelectItem>
                         <SelectItem value="5">5th Semester</SelectItem>
+                        <SelectItem value="6">6th Semester</SelectItem>
+                        <SelectItem value="7">7th Semester</SelectItem>
+                        <SelectItem value="8">8th Semester</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -650,9 +662,15 @@ const handleAdminDownloadPDF = async () => {
                         <SelectValue placeholder="Select class teacher" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="Rajani">Rajani</SelectItem>
+                        <SelectItem value="Rajeshwari G L">Rajeshwari G L</SelectItem>
+                        <SelectItem value="Chetana K N">Chetana K N</SelectItem>
                         <SelectItem value="Shubha T V">Shubha T V</SelectItem>
                         <SelectItem value="Vinutha K">Vinutha K</SelectItem>
                         <SelectItem value="Jyothi P K">Jyothi P K</SelectItem>
+                        <SelectItem value="Laxmi Shabadi">Laxmi Shabadi</SelectItem>
+                        <SelectItem value="Srinidhi K S">Srinidhi K S</SelectItem>
+                        <SelectItem value="Vijayalaxmi Joshi">Vijayalaxmi Joshi</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
